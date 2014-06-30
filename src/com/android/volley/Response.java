@@ -29,6 +29,10 @@ public class Response<T> {
         public void onResponse(T response);
     }
 
+    public interface ProgressListener {
+        public void onProgress(long current, long total);
+    }
+
     /** Callback interface for delivering error responses. */
     public interface ErrorListener {
         /**

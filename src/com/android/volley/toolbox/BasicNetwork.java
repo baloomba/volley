@@ -25,6 +25,8 @@ import com.android.volley.NetworkError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.Response.ProgressListener;
 import com.android.volley.RetryPolicy;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
@@ -104,7 +106,7 @@ public class BasicNetwork implements Network {
 
                 // Some responses such as 204s do not have content.  We must check.
                 if (httpResponse.getEntity() != null) {
-                  responseContents = entityToBytes(httpResponse.getEntity());
+                    responseContents = entityToBytes(request, httpResponse.getEntity());
                 } else {
                   // Add 0 byte response as a way of honestly representing a
                   // no-content request.
@@ -207,19 +209,29 @@ public class BasicNetwork implements Network {
     }
 
     /** Reads the contents of HttpEntity into a byte[]. */
-    private byte[] entityToBytes(HttpEntity entity) throws IOException, ServerError {
+    private byte[] entityToBytes(Request<?> request, HttpEntity entity) throws IOException, ServerError {
         PoolingByteArrayOutputStream bytes =
                 new PoolingByteArrayOutputStream(mPool, (int) entity.getContentLength());
         byte[] buffer = null;
+        long total = entity.getContentLength();
         try {
+            ProgressListener progressListener = null;
+            if (request instanceof ProgressListener) {
+                progressListener = (ProgressListener)request;
+            }
             InputStream in = entity.getContent();
             if (in == null) {
                 throw new ServerError();
             }
             buffer = mPool.getBuf(1024);
             int count;
+            long current = 0;
             while ((count = in.read(buffer)) != -1) {
                 bytes.write(buffer, 0, count);
+                current += count;
+                if (null != progressListener) {
+                    progressListener.onProgress(current, total);
+                }
             }
             return bytes.toByteArray();
         } finally {
