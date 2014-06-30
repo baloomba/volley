@@ -230,7 +230,7 @@ public class BasicNetwork implements Network {
                 bytes.write(buffer, 0, count);
                 current += count;
                 if (null != progressListener) {
-                    progressListener.onProgress(current, total);
+                    progressListener.onDownloadProgress(current, total);
                 }
             }
             return bytes.toByteArray();

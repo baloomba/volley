@@ -30,7 +30,8 @@ public class Response<T> {
     }
 
     public interface ProgressListener {
-        public void onProgress(long current, long total);
+        public void onDownloadProgress(long current, long total);
+        public void onUploadProgress(long current, long total);
     }
 
     /** Callback interface for delivering error responses. */
